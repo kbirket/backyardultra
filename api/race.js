@@ -15,12 +15,13 @@ export default async function handler(req, res) {
   function airtableError(status,message){if(status===401)return new Error(`Airtable rejected AIRTABLE_PAT (401). Safe token check: startsWithPat=${patInfo.startsWithPat}, hasDot=${patInfo.hasDot}, hasWhitespace=${patInfo.hasWhitespace}, length=${patInfo.length}. The token itself is not exposed.`);return new Error(message||`Airtable error ${status}`)}
   async function at(table,method="GET",body){const url=`https://api.airtable.com/v0/${BASE}/${encodeURIComponent(table)}`;const r=await fetch(url,{method,headers:{"Authorization":`Bearer ${PAT}`,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw airtableError(r.status,d.error?.message);return d}
   async function all(table){let out=[],offset="";do{const url=`https://api.airtable.com/v0/${BASE}/${encodeURIComponent(table)}${offset?`?offset=${encodeURIComponent(offset)}`:""}`;const r=await fetch(url,{headers:{"Authorization":`Bearer ${PAT}`}});const d=await r.json().catch(()=>({}));if(!r.ok)throw airtableError(r.status,d.error?.message);out.push(...(d.records||[]));offset=d.offset||""}while(offset);return out}
+  async function safeAll(table){try{return await all(table)}catch(e){console.error(`Airtable read failed for ${table}:`,e.message);return []}}
   async function update(table,id,fields){return at(table,"PATCH",{records:[{id,fields}]})}
   async function create(table,fields){return at(table,"POST",{records:[{fields}]})}
   try{
     const b=req.body||{},action=b.action;
     if(action==="getAll"){
-      const [race,loops,reminders,plan,runnerLog,gear]=await Promise.all([all(tables.race),all(tables.loops),all(tables.reminders),all(tables.plan),all(tables.runnerLog),all(tables.gear)]);
+      const [race,loops,reminders,plan,runnerLog,gear]=await Promise.all([safeAll(tables.race),safeAll(tables.loops),safeAll(tables.reminders),safeAll(tables.plan),safeAll(tables.runnerLog),safeAll(tables.gear)]);
       return res.status(200).json({race:race[0]||null,loops,reminders,plan,runnerLog,gear});
     }
     const races=await all(tables.race),race=races[0];if(!race)throw new Error("Race table has no record.");
