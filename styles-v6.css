@@ -1,32 +1,11 @@
 /* Gear visual system — same color language as the race plan, without bulky category pills. */
 #gearTab .card:has(#gearList){padding:0;overflow:hidden}
 #gearList{display:block}
-.gear-item{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;min-height:76px;padding:14px 12px 14px 16px;background:linear-gradient(90deg,rgba(10,20,39,.98),rgba(7,15,29,.98));border-bottom:1px solid #1a2944}
-.gear-item:last-child{border-bottom:0}
-.gear-item:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gear-accent,#8d45ff)}
-.gear-item.done{opacity:.48}
-.gear-item.done .gear-name{text-decoration:line-through}
-.gear-copy{min-width:0}
-.gear-name{font-size:16px;font-weight:850;color:#f7f9ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gear-meta{font-size:11px;color:#8294b7;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.025em}
-.gear-note{font-size:11px;color:#667895;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gear-action{min-width:58px;border:1px solid #34486f;border-radius:10px;padding:9px 10px;background:#0b1730;color:#b8c7e6;font-size:11px;font-weight:900;letter-spacing:.06em}
-.gear-action:active{transform:scale(.97)}
-.gear-empty{padding:28px 18px;text-align:center;color:#8292b1;background:#081426;border:1px dashed #314365;font-size:13px}
-#gearTab .night-card{margin-bottom:12px}
-#gearTab .current-gear{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-top:1px solid #1c304b}
-#gearTab .current-gear:first-child{border-top:0}
-#gearTab .current-gear b{font-size:14px;color:#f5f7ff}
-#gearTab .current-gear span{font-size:11px;color:#8191b3;text-transform:uppercase;white-space:nowrap}
+.gear-item{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;min-height:76px;padding:14px 12px 14px 16px;background:linear-gradient(90deg,rgba(10,20,39,.98),rgba(7,15,29,.98));border-bottom:1px solid #1a2944}.gear-item:last-child{border-bottom:0}.gear-item:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gear-accent,#8d45ff)}.gear-item.done{opacity:.48}.gear-item.done .gear-name{text-decoration:line-through}.gear-copy{min-width:0}.gear-name{font-size:16px;font-weight:850;color:#f7f9ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gear-meta{font-size:11px;color:#8294b7;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.025em}.gear-note{font-size:11px;color:#667895;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gear-action{min-width:58px;border:1px solid #34486f;border-radius:10px;padding:9px 10px;background:#0b1730;color:#b8c7e6;font-size:11px;font-weight:900;letter-spacing:.06em}.gear-action:active{transform:scale(.97)}.gear-empty{padding:28px 18px;text-align:center;color:#8292b1;background:#081426;border:1px dashed #314365;font-size:13px}
+#gearTab .night-card{margin-bottom:12px}#gearTab .current-gear{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-top:1px solid #1c304b}#gearTab .current-gear:first-child{border-top:0}#gearTab .current-gear b{font-size:14px;color:#f5f7ff}#gearTab .current-gear span{font-size:11px;color:#8191b3;text-transform:uppercase;white-space:nowrap}
 /* Small readability lift across the existing system — hierarchy, spacing and color stay unchanged. */
-#gearTab .page-hero p,#gearTab .night-card p{font-size:16px;line-height:1.45}
-#gearTab .section-title h2{font-size:20px}
-.plan-name{font-size:15px}
-.plan-note{font-size:11px}
-.plan-time{font-size:14px}
-.plan-loop{font-size:10px}
-.plan-day-head strong{font-size:13px}
-.plan-day-head span{font-size:11px}
-.plan-helper{font-size:13px}
-.plan-helper strong{font-size:14px}
-.plan-filter{font-size:13px}
+#gearTab .page-hero p,#gearTab .night-card p{font-size:16px;line-height:1.45}#gearTab .section-title h2{font-size:20px}.plan-name{font-size:15px}.plan-note{font-size:11px}.plan-time{font-size:14px}.plan-loop{font-size:10px}.plan-day-head strong{font-size:13px}.plan-day-head span{font-size:11px}.plan-helper{font-size:13px}.plan-helper strong{font-size:14px}.plan-filter{font-size:13px}
+/* Tom tab readability lift — preserve the existing runner visual system and hierarchy. */
+#runnerTab .section-kicker{font-size:10px;letter-spacing:1.4px}#runnerTab .runner-copy{font-size:clamp(44px,13vw,62px);line-height:.88}#runnerTab .runner-loop span{font-size:10px;letter-spacing:1px}#runnerTab .runner-loop strong{font-size:58px;line-height:.86}#runnerTab .runner-loop small{font-size:11px;letter-spacing:.4px}#runnerTab .runner-hero:after{font-size:10px;letter-spacing:1.1px}#runnerTab .runner-check .section-title h2{font-size:22px}#runnerTab .check-hint{font-size:12px}#runnerTab .check-grid{gap:8px}#runnerTab .check-grid button{font-size:13px;min-height:52px}#runnerTab .check-grid button span{font-size:21px}#runnerTab .good-go{font-size:14px;padding:15px 12px}#runnerTab .runner-next{font-size:11px}#runnerTab .runner-next b{font-size:16px}#runnerTab .runner-quote{font-size:18px}
+.bottom-nav{position:fixed!important;left:50%!important;bottom:0!important;transform:translateX(-50%)!important;width:min(430px,100vw)!important;height:64px!important;display:flex!important;align-items:stretch!important;background:rgba(5,11,23,.97)!important;border-top:1px solid #263a59!important;z-index:2147483647!important;pointer-events:none!important;isolation:isolate!important}.bottom-nav .tab{position:relative!important;z-index:2147483647!important;pointer-events:auto!important;touch-action:manipulation!important;cursor:pointer!important;-webkit-user-select:none!important;user-select:none!important;flex:1!important;border:0!important;background:transparent!important;color:#71839c!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;font-size:8px!important;font-weight:900!important}.bottom-nav .tab span{font-size:17px!important;line-height:1!important}.bottom-nav .tab.active{color:#fff!important}.bottom-nav .tab:active{background:#0b1930!important}
+@media(max-width:380px){#runnerTab .runner-copy{font-size:43px}#runnerTab .runner-loop strong{font-size:52px}.gear-name{font-size:15px}.gear-meta{font-size:10px}.gear-note{font-size:10px}}
