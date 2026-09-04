@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       const ret=new Date();
       const loopStart=new Date(start.getTime()+(cur-1)*3600000);
       const mins=Math.max(0,Math.round((ret-loopStart)/60000));
-      await create(tables.loops,{"Loop #":cur,"Start Time":loopStart.toISOString(),"Return Time":ret.toISOString(),"Loop Time":`${mins} min`,`Total Miles`:Number((cur*dist).toFixed(1)),"Notes":"Recorded from Crew Mode"});
+      await create(tables.loops,{"Loop #":cur,"Start Time":loopStart.toISOString(),"Return Time":ret.toISOString(),"Loop Time":`${mins} min`,"Total Miles":Number((cur*dist).toFixed(1)),"Notes":"Recorded from Crew Mode"});
       await update(tables.race,race.id,{"Current Loop":cur+1,"Status":"Running"});
       return res.status(200).json({ok:true});
     }
