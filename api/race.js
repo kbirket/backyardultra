@@ -6,12 +6,21 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({error:"POST only"});
 
   const env = process.env;
-  const BASE = env.AIRTABLE_BASE_ID;
+  // This app is intentionally pinned to the shared Backyard Ultra Airtable base.
+  // The PAT remains a Vercel secret and is never exposed.
+  const BASE = "app9vrf64xM7v4i7w";
   const PAT = env.AIRTABLE_PAT;
-  if (!BASE || !PAT) return res.status(500).json({error:"Vercel environment variables AIRTABLE_BASE_ID and AIRTABLE_PAT are missing."});
+  if (!PAT) return res.status(500).json({error:"Vercel environment variable AIRTABLE_PAT is missing."});
 
   const patInfo = {received:true,startsWithPat:PAT.startsWith("pat"),hasDot:PAT.includes("."),hasWhitespace:PAT!==PAT.trim(),length:PAT.length};
-  const tables = {race:"Race",loops:"Loops",reminders:"Reminders",plan:"Race Plan",runnerLog:"Runner Log",gear:"Gear"};
+  const tables = {
+    race:"tblHqXklgAtVIB6wb",
+    loops:"tblME4RgJ0DUpM9Ja",
+    reminders:"tbly8LBfSYxsc3jW9",
+    plan:"tblCu4PYDG3DE6ZPl",
+    runnerLog:"tbl7m6iZcMhP2C315",
+    gear:"tblJuTpt1AtiY0fDZ"
+  };
   function airtableError(status,message){if(status===401)return new Error(`Airtable rejected AIRTABLE_PAT (401). Safe token check: startsWithPat=${patInfo.startsWithPat}, hasDot=${patInfo.hasDot}, hasWhitespace=${patInfo.hasWhitespace}, length=${patInfo.length}. The token itself is not exposed.`);return new Error(message||`Airtable error ${status}`)}
   async function at(table,method="GET",body){const url=`https://api.airtable.com/v0/${BASE}/${encodeURIComponent(table)}`;const r=await fetch(url,{method,headers:{"Authorization":`Bearer ${PAT}`,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw airtableError(r.status,d.error?.message);return d}
   async function all(table){let out=[],offset="";do{const url=`https://api.airtable.com/v0/${BASE}/${encodeURIComponent(table)}${offset?`?offset=${encodeURIComponent(offset)}`:""}`;const r=await fetch(url,{headers:{"Authorization":`Bearer ${PAT}`}});const d=await r.json().catch(()=>({}));if(!r.ok)throw airtableError(r.status,d.error?.message);out.push(...(d.records||[]));offset=d.offset||""}while(offset);return out}
