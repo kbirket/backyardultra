@@ -32,7 +32,9 @@ export default async function handler(req, res) {
       const loopNumber=Number(b.loop);
       if(!loopNumber||!b.fields)throw new Error("Runner log is missing its loop number or check-in.");
       const f=b.fields||{};
-      await create(tables.runnerLog,{"Loop #":loopNumber,"Time":new Date().toISOString(),"Feeling":f.feeling||"","Legs":f.legs||"","Feet":f.feet||"","Hydration":f.hydration||"","Fuel":f.fuel||"","Mental":f.mental||"","Note":String(f.note||"").trim()});
+      const loops=await all(tables.loops);
+      if(!loops.some(r=>Number(r.fields?.["Loop #"])===loopNumber))throw new Error(`Loop ${loopNumber} has not been completed yet.`);
+      await create(tables.runnerLog,{"Name":`Loop ${loopNumber} — Tom Check-In`,"Loop #":loopNumber,"Time":new Date().toISOString(),"Feeling":f.feeling||"","Legs":f.legs||"","Feet":f.feet||"","Hydration":f.hydration||"","Fuel":f.fuel||"","Mental":f.mental||"","Note":String(f.note||"").trim()});
       return res.status(200).json({ok:true});
     }
     if(action==="setReminderDone"){await update(tables.reminders,b.id,{Done:!!b.done});return res.status(200).json({ok:true})}
