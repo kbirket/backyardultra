@@ -1,15 +1,34 @@
-/* Tom + Kristen personalization and runner guidance. */
+/* Tom + Kristen personalization and adaptive runner guidance. */
 (function(){
   const qs=s=>document.querySelector(s);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let data={race:null,loops:[],runnerLog:[]};
   const load=async()=>{try{const r=await fetch('/api/race',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'getAll'})});if(!r.ok)return;data=await r.json();render();}catch(e){}};
   const completed=()=>Array.isArray(data.loops)?data.loops.slice().sort((a,b)=>Number(b.fields?.['Loop #']||0)-Number(a.fields?.['Loop #']||0)):[];
+  const recentLog=()=>Array.isArray(data.runnerLog)?data.runnerLog.slice().sort((a,b)=>new Date(b.fields?.Time||0)-new Date(a.fields?.Time||0))[0]?.fields||null:null;
+  const adviceFor=(loop,log)=>{
+    let title,sub,items;
+    if(loop<=5){title='HOLD BACK.';sub='The early race should feel almost boring. Save your legs.';items=[['START EASY','If you feel too good, slow down.'],['WALK EARLY','Walking is strategy, not failure.'],['EAT EARLY','Hungry? Eat now. Don’t wait until you’re depleted.'],['DON’T CHASE','Run your loop. Other runners are not your pace group.']];}
+    else if(loop<=10){title='FIND YOUR RHYTHM.';sub='Steady wins. Build the same repeatable routine every hour.';items=[['KEEP IT BORING','Same effort. Same routine. Don’t chase.'],['AFTER EVERY LOOP','Drink → eat → check feet → get to the corral.'],['FIX SMALL PROBLEMS','Anything weird? Tell Kristen while it’s still small.'],['COME IN WITH TIME','Give yourself recovery time before the next bell.']];}
+    else if(loop<=20){title='PROTECT THE BODY.';sub='Small problems become big problems if you carry them forward.';items=[['HEAVY LEGS','Back off. You do not need to make up time.'],['HOT SPOT / BLISTER','Stop and deal with your feet before the next loop.'],['FUEL BEHIND','Eat during recovery and carry what you need into the next loop.'],['LIGHTS + HIGH-VIS','If continuing after Loop 10, have required night gear ready before dark.']];}
+    else if(loop<=30){title='ONE LOOP AT A TIME.';sub='Forget the mileage. You only need to finish this loop.';items=[['OVERWHELMED?','Don’t solve the whole race. Finish this loop, recover, reassess.'],['EVERYTHING HARD?','Slow down. Keep moving. Get back to the corral.'],['EAT + DRINK','Take care of the basics before making decisions.'],['FEET','A small foot problem is still worth fixing now.']];}
+    else {title='SURVIVE THE NEXT DECISION.';sub='You do not have to finish the whole race right now. Make the next bell.';items=[['NEXT LOOP ONLY','Forget 100 miles. Make the next loop.'],['BAD LOOP?','Finish it. Recover. Then reassess.'],['BEFORE THE BELL','Eat → drink → feet → breathe → corral.'],['DON’T MAKE BIG CALLS','Exhaustion makes everything feel final. Focus on the next decision.']];}
+    if(log){
+      const overrides=[];
+      if(log.Feet==='Hot spot'||log.Feet==='Blister'||log.Feet==='Problem')overrides.push(['DEAL WITH YOUR FEET','Fix the problem now. Don’t carry it into the next loop.']);
+      if(log.Legs==='Heavy'||log.Legs==='Pain')overrides.push(['PROTECT YOUR LEGS','Back off the effort. You do not need to make up time.']);
+      if(log.Fuel==='Behind')overrides.push(['FUEL NOW','Eat during recovery and take what you need into the next loop.']);
+      if(log.Hydration==='Behind')overrides.push(['CATCH UP GRADUALLY','Drink steadily during recovery. Don’t panic-chug.']);
+      if(log.Mental==='Struggling'||log.Feeling==='Struggling')overrides.push(['ONE LOOP ONLY','Forget the whole race. Finish this loop, recover, then reassess.']);
+      if(overrides.length)items=[...overrides,...items].slice(0,4);
+    }
+    return {title,sub,items};
+  };
   const renderAdvice=()=>{
-    const runner=qs('#runnerTab');if(!runner||qs('#tomAdviceCard'))return;
-    const card=document.createElement('section');card.id='tomAdviceCard';card.className='card tom-advice-card';
-    card.innerHTML='<div class="section-kicker">TOM’S RACE BRAIN</div><h2>JUST MAKE THE NEXT LOOP.</h2><p>Don’t think about 100 miles. The job is one loop at a time.</p><div class="advice-list"><div><b>START EASY</b><span>Protect your legs early.</span></div><div><b>WALK EARLY</b><span>Walking is strategy, not failure.</span></div><div><b>FIX SMALL PROBLEMS</b><span>Hot spot, rubbing, pain or anything weird? Tell Kristen now.</span></div><div><b>COME IN WITH TIME</b><span>Recover, fuel, check feet and get to the corral.</span></div><div><b>DON’T CHASE</b><span>Run your loop. Other runners are not your pace group.</span></div><div><b>BAD LOOP?</b><span>Finish this loop. Recover. Then reassess.</span></div></div><div class="advice-call"><span>❤️ KRISTEN = RACE CONTROL</span><b>If Kristen says eat, drink, socks, lights or corral — do it.</b></div>';
-    const anchor=runner.querySelector('.runner-check');anchor?anchor.parentNode.insertBefore(card,anchor):runner.appendChild(card);
+    const runner=qs('#runnerTab');if(!runner)return;
+    let card=qs('#tomAdviceCard');if(!card){card=document.createElement('section');card.id='tomAdviceCard';card.className='card tom-advice-card';const anchor=runner.querySelector('.runner-check');anchor?anchor.parentNode.insertBefore(card,anchor):runner.appendChild(card);}
+    const last=completed()[0],loop=Number(last?.fields?.['Loop #']||0),current=Math.max(1,loop+1),log=recentLog(),a=adviceFor(current,log);
+    card.innerHTML=`<div class="section-kicker">TOM’S RACE BRAIN · LOOP ${current}</div><h2>${a.title}</h2><p>${a.sub}</p><div class="advice-list">${a.items.map(x=>`<div><b>${esc(x[0])}</b><span>${esc(x[1])}</span></div>`).join('')}</div><div class="advice-call"><span>❤️ KRISTEN = RACE CONTROL</span><b>If Kristen says eat, drink, socks, lights or corral — do it.</b></div>`;
   };
   const renderLog=()=>{
     const old=qs('#runnerLogCard');if(old)old.remove();
@@ -28,9 +47,7 @@
     const logs=Array.isArray(data.runnerLog)?data.runnerLog.slice().sort((a,b)=>new Date(b.fields?.Time||0)-new Date(a.fields?.Time||0)):[];
     qs('#runnerLogHistory').innerHTML=logs.slice(0,8).map(x=>{const f=x.fields||{};const bits=[f.Feeling,f.Legs,f.Feet,f.Hydration,f.Fuel,f.Mental].filter(Boolean).join(' · ');return `<div class="runner-log-row"><div><b>Loop ${esc(f['Loop #']||'—')}</b><small>${f.Time?new Date(f.Time).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):''}</small></div><p>${esc(bits)}${f.Note?` · ${esc(f.Note)}`:''}</p></div>`;}).join('')||'<div class="muted">Your loop check-ins will appear here.</div>';
   };
-  const personalize=()=>{
-    document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&el.textContent.includes('CREW'))el.textContent=el.textContent.replace(/CREW/g,'KRISTEN');});
-  };
+  const personalize=()=>{document.querySelectorAll('body *').forEach(el=>{if(el.children.length===0&&el.textContent.includes('CREW'))el.textContent=el.textContent.replace(/CREW/g,'KRISTEN');});};
   const render=()=>{renderAdvice();renderLog();personalize();};
   window.addEventListener('load',()=>{render();load();setInterval(load,10000);});
 })();
