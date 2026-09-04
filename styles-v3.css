@@ -1,0 +1,35 @@
+/* Live race-control refinements */
+.warning-grid{display:none!important}
+.race-card{transition:background .2s ease,border-color .2s ease}
+.race-card.warn3{background:#11150b;border:1px solid #5d5513;border-radius:8px;padding:0 6px 6px}
+.race-card.warn3 .timer-label,.race-card.warn3 .countdown,.race-card.warn3 .progress-label{background:#11150b;border-color:#5d5513}
+.race-card.warn3 .countdown{color:#ffe000}
+.race-card.warn3 .progress-track span{background:#ffe000}
+.race-card.warn2{background:#171108;border:1px solid #75500e;border-radius:8px;padding:0 6px 6px}
+.race-card.warn2 .timer-label,.race-card.warn2 .countdown,.race-card.warn2 .progress-label{background:#171108;border-color:#75500e}
+.race-card.warn2 .timer-label:after{content:' · GET CREW READY';color:#ffbf32}
+.race-card.warn2 .countdown{color:#ffbf32}
+.race-card.warn2 .progress-track span{background:#ffbf32}
+.race-card.warn1{background:#200b10;border:1px solid #8d303d;border-radius:8px;padding:0 6px 6px;animation:linePulse 1s ease-in-out infinite}
+.race-card.warn1 .timer-label,.race-card.warn1 .countdown,.race-card.warn1 .progress-label{background:#200b10;border-color:#8d303d}
+.race-card.warn1 .timer-label{color:#ff6b76}
+.race-card.warn1 .timer-label:after{content:' · GET TO LINE';color:#ff6b76;font-weight:900}
+.race-card.warn1 .countdown{color:#ff6b76}
+.race-card.warn1 .progress-track span{background:#ff606b}
+@keyframes linePulse{50%{box-shadow:0 0 0 2px rgba(255,96,107,.12)}}
+.next-card{cursor:pointer;transition:transform .15s ease,border-color .15s ease}
+.next-card:active{transform:scale(.985);border-color:#6570ff}
+.milestone-card .section-title{margin-bottom:7px}
+.milestone-list{display:block}
+.milestone-strip{display:grid;grid-template-columns:repeat(4,1fr);position:relative;gap:5px}
+.milestone-strip:before{content:'';position:absolute;left:9%;right:9%;top:18px;height:2px;background:#263b56;z-index:0}
+.mile-stop{position:relative;z-index:1;text-align:center;background:#071427}
+.mile-stop b{display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1px solid #2a405c;background:#0a1a30;color:#a8b5c5;font-family:'Barlow Condensed',sans-serif;font-size:16px}
+.mile-stop span{display:block;font-family:'DM Mono',monospace;font-size:6px;color:#71849a;margin-top:2px}
+.mile-stop i{display:block;height:10px;margin-top:2px;font-style:normal;font-family:'DM Mono',monospace;font-size:6px;color:#7f91a7}
+.mile-stop.hit b{background:#0b211a;border-color:#2f6b4a;color:#7fe56b}
+.mile-stop.hit i{color:#7fe56b}
+.mile-stop.active b{background:#5b63ff;border-color:#747cff;color:#fff;box-shadow:0 0 0 3px rgba(91,99,255,.13)}
+.mile-stop.active i{color:#9da4ff;font-weight:700}
+.milestone-caption{text-align:center;margin-top:4px;font-family:'DM Mono',monospace;font-size:7px;color:#8294a9}
+.milestone-caption b{color:#fff}
