@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   if (!BASE || !PAT) return res.status(500).json({error:"Vercel environment variables AIRTABLE_BASE_ID and AIRTABLE_PAT are missing."});
 
   const patInfo = {received:true,startsWithPat:PAT.startsWith("pat"),hasDot:PAT.includes("."),hasWhitespace:PAT!==PAT.trim(),length:PAT.length};
-  const tables = {race:"Race",loops:"Loops",reminders:"Reminders",plan:"Race Plan",runnerLog:"Runner Log"};
+  const tables = {race:"Race",loops:"Loops",reminders:"Reminders",plan:"Race Plan",runnerLog:"Runner Log",gear:"Gear"};
   function airtableError(status,message){if(status===401)return new Error(`Airtable rejected AIRTABLE_PAT (401). Safe token check: startsWithPat=${patInfo.startsWithPat}, hasDot=${patInfo.hasDot}, hasWhitespace=${patInfo.hasWhitespace}, length=${patInfo.length}. The token itself is not exposed.`);return new Error(message||`Airtable error ${status}`)}
   async function at(table,method="GET",body){const url=`https://api.airtable.com/v0/${BASE}/${encodeURIComponent(table)}`;const r=await fetch(url,{method,headers:{"Authorization":`Bearer ${PAT}`,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw airtableError(r.status,d.error?.message);return d}
   async function all(table){let out=[],offset="";do{const url=`https://api.airtable.com/v0/${BASE}/${encodeURIComponent(table)}${offset?`?offset=${encodeURIComponent(offset)}`:""}`;const r=await fetch(url,{headers:{"Authorization":`Bearer ${PAT}`}});const d=await r.json().catch(()=>({}));if(!r.ok)throw airtableError(r.status,d.error?.message);out.push(...(d.records||[]));offset=d.offset||""}while(offset);return out}
@@ -20,8 +20,8 @@ export default async function handler(req, res) {
   try{
     const b=req.body||{},action=b.action;
     if(action==="getAll"){
-      const [race,loops,reminders,plan,runnerLog]=await Promise.all([all(tables.race),all(tables.loops),all(tables.reminders),all(tables.plan),all(tables.runnerLog)]);
-      return res.status(200).json({race:race[0]||null,loops,reminders,plan,runnerLog});
+      const [race,loops,reminders,plan,runnerLog,gear]=await Promise.all([all(tables.race),all(tables.loops),all(tables.reminders),all(tables.plan),all(tables.runnerLog),all(tables.gear)]);
+      return res.status(200).json({race:race[0]||null,loops,reminders,plan,runnerLog,gear});
     }
     const races=await all(tables.race),race=races[0];if(!race)throw new Error("Race table has no record.");
     if(action==="startRace"){await update(tables.race,race.id,{Status:"Running",["Current Loop"]:1});return res.status(200).json({ok:true})}
@@ -37,6 +37,13 @@ export default async function handler(req, res) {
       await create(tables.runnerLog,{"Name":`Loop ${loopNumber} — Tom Check-In`,"Loop #":loopNumber,"Time":new Date().toISOString(),"Feeling":f.feeling||"","Legs":f.legs||"","Feet":f.feet||"","Hydration":f.hydration||"","Fuel":f.fuel||"","Mental":f.mental||"","Note":String(f.note||"").trim()});
       return res.status(200).json({ok:true});
     }
+    if(action==="saveGear"){
+      const f=b.fields||{};
+      if(!String(f.item||"").trim())throw new Error("Gear item is required.");
+      await create(tables.gear,{"Item":String(f.item).trim(),"Category":f.category||"Other","Person":f.person||"Both","Quantity":Number(f.quantity||1),"Status":f.status||"Ready","Location":f.location||"","Notes":String(f.notes||"").trim(),"Done":!!f.done});
+      return res.status(200).json({ok:true});
+    }
+    if(action==="setGearDone"){await update(tables.gear,b.id,{Done:!!b.done,Status:b.done?"In Use":"Ready"});return res.status(200).json({ok:true})}
     if(action==="setReminderDone"){await update(tables.reminders,b.id,{Done:!!b.done});return res.status(200).json({ok:true})}
     if(action==="setPlanDone"){await update(tables.plan,b.id,{Done:!!b.done,Status:b.done?"Done":"Not started"});return res.status(200).json({ok:true})}
     if(action==="createReminder"){await create(tables.reminders,b.fields||{});return res.status(200).json({ok:true})}
