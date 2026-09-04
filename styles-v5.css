@@ -21,18 +21,18 @@
 .plan-day-head{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;background:linear-gradient(90deg,rgba(70,34,137,.35),rgba(11,23,48,.9));border-bottom:1px solid #223252}
 .plan-day-head strong{font-size:12px;letter-spacing:.11em;color:#b56cff;text-transform:uppercase}
 .plan-day-head span{font-size:10px;color:#8191b3;font-weight:800;letter-spacing:.08em}
-.plan-item{position:relative;display:grid;grid-template-columns:66px 42px minmax(0,1fr) 30px;gap:10px;align-items:center;min-height:76px;padding:9px 10px;border-bottom:1px solid #1a2944}
+.plan-item{position:relative;display:grid;grid-template-columns:66px 42px minmax(0,1fr) 30px max-content;gap:10px;align-items:center;min-height:76px;padding:9px 10px;border-bottom:1px solid #1a2944}
 .plan-item:last-child{border-bottom:0}
 .plan-item:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--plan-accent,#8d45ff)}
 .plan-time{font-size:13px;font-weight:900;color:#fff;line-height:1.05}
 .plan-loop{font-size:9px;color:#7789ac;margin-top:5px;text-transform:uppercase;letter-spacing:.05em}
 .plan-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;border:1px solid currentColor;background:rgba(255,255,255,.025);font-size:18px}
 .plan-copy{min-width:0}.plan-name{font-size:14px;font-weight:850;color:#f7f9ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.plan-note{font-size:10px;color:#8394b7;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.plan-badge{justify-self:end;align-self:start;margin-top:1px;border:1px solid currentColor;border-radius:999px;padding:5px 7px;font-size:8px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+.plan-badge{justify-self:end;align-self:center;white-space:nowrap;border:1px solid currentColor;border-radius:999px;padding:5px 7px;font-size:8px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
 .plan-check{width:24px;height:24px;border-radius:7px;border:2px solid #7185ac;background:transparent;appearance:none;position:relative;cursor:pointer}
 .plan-check:checked{background:#8d45ff;border-color:#8d45ff}.plan-check:checked:after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:900}
 .plan-item.done{opacity:.5}.plan-item.done .plan-name{text-decoration:line-through}
 .plan-empty{padding:30px 18px;text-align:center;border:1px dashed #314365;border-radius:15px;color:#8292b1;background:#081426}
 #planTab .card:last-child{margin-top:4px}
 #planTab .section-title h2{font-size:19px}
-@media(max-width:380px){.plan-item{grid-template-columns:58px 38px minmax(0,1fr) 28px;gap:7px;padding-left:8px;padding-right:8px}.plan-badge{display:none}}
+@media(max-width:380px){.plan-item{grid-template-columns:58px 38px minmax(0,1fr) 28px max-content;gap:7px;padding-left:8px;padding-right:8px}.plan-badge{display:none}}
