@@ -1,71 +1,15 @@
 /* Premium race-plan presentation layer. Keeps the existing Airtable-backed actions intact. */
 (function(){
-  const originalRenderPlan=window.renderPlan;
-  const colors={
-    'Food':{accent:'#ff9b18',icon:'🍴'},
-    'Supplement':{accent:'#9b4dff',icon:'💊'},
-    'Medication':{accent:'#9b4dff',icon:'💊'},
-    'Race':{accent:'#38e36b',icon:'🏃'},
-    'Setup':{accent:'#24a8ff',icon:'△'},
-    'Coffee':{accent:'#ffb51b',icon:'☕'},
-    'Admin':{accent:'#24a8ff',icon:'✓'}
-  };
+  const colors={'Food':{accent:'#ff9b18',icon:'🍴'},'Supplement':{accent:'#9b4dff',icon:'💊'},'Medication':{accent:'#ff6bd6',icon:'💊'},'Race':{accent:'#38e36b',icon:'🏃'},'Setup':{accent:'#24a8ff',icon:'△'},'Coffee':{accent:'#ffb51b',icon:'☕'},'Admin':{accent:'#24a8ff',icon:'✓'}};
   let filter='All';
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const timeKey=v=>{const m=String(v||'').trim().toUpperCase().match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/);if(!m)return 999999;let h=+m[1],n=+(m[2]||0);if(m[3]==='PM'&&h<12)h+=12;if(m[3]==='AM'&&h===12)h=0;return h*60+n};
   const planSort=(a,b)=>{const fa=a.fields||{},fb=b.fields||{},da=fa.Date||'9999-12-31',db=fb.Date||'9999-12-31';return da!==db?da.localeCompare(db):timeKey(fa.Time)-timeKey(fb.Time)};
   const category=f=>String(f.Category||'Admin');
   const styleFor=f=>colors[category(f)]||colors.Admin;
-  function enhanceHero(){
-    const hero=document.querySelector('#planTab .page-hero'); if(!hero)return;
-    const kicker=hero.querySelector('.section-kicker'), title=hero.querySelector('h2'), p=hero.querySelector('p');
-    if(kicker)kicker.textContent='RACE PLAN';
-    if(title)title.textContent='Fuel the Mission';
-    if(p)p.textContent='Right things. Right time. One more loop.';
-    if(!hero.querySelector('.plan-intro')){
-      const stats=document.createElement('div');stats.className='plan-intro';
-      stats.innerHTML='<span class="plan-stat">START <strong>9:00 AM CT</strong></span><span class="plan-stat">LOOP <strong>4.167 MI</strong></span><span class="plan-stat">LAST RUNNER STANDING</span>';
-      hero.insertBefore(stats,hero.querySelector('#addPlanBtn'));
-    }
-  }
-  function buildFilters(items){
-    const old=document.querySelector('#planTab .plan-filter-bar'); if(old)old.remove();
-    const cats=['All','Nutrition','Supplements','Food','Admin','Overnight'];
-    const counts={All:items.length,Nutrition:items.filter(x=>/fuel|hydr|coffee/i.test(String(x.fields?.Category||'')+' '+String(x.fields?.Name||x.fields?.Item||''))).length,Supplements:items.filter(x=>/supplement|medication/i.test(String(x.fields?.Category||''))).length,Food:items.filter(x=>String(x.fields?.Category||'')==='Food').length,Admin:items.filter(x=>/setup|race|admin|coffee/i.test(String(x.fields?.Category||''))).length,Overnight:items.filter(x=>{const d=String(x.fields?.Date||'');return /2026-09-06/.test(d)}).length};
-    const bar=document.createElement('div');bar.className='plan-filter-bar';
-    cats.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='plan-filter'+(filter===c?' active':'');b.textContent=`${c} (${counts[c]||0})`;b.onclick=()=>{filter=c;renderPremium()};bar.appendChild(b)});
-    const target=document.querySelector('#planTab .page-hero');target?.after(bar);
-  }
-  function matches(f){
-    if(filter==='All')return true;
-    const c=String(f.Category||''); const n=String(f.Name||f.Item||'');
-    if(filter==='Supplements')return /supplement|medication/i.test(c);
-    if(filter==='Food')return c==='Food';
-    if(filter==='Nutrition')return /nutrition|hydration|fuel|coffee/i.test(c+' '+n);
-    if(filter==='Admin')return /setup|race|admin/i.test(c);
-    if(filter==='Overnight')return String(f.Date||'')==='2026-09-06';
-    return true;
-  }
-  function renderPremium(){
-    enhanceHero();
-    const items=[...(window.state?.plan||[])].sort(planSort);
-    buildFilters(items);
-    const el=document.getElementById('planList');if(!el)return;el.innerHTML='';
-    const visible=items.filter(x=>matches(x.fields||{}));
-    const helper=document.createElement('div');helper.className='plan-helper';helper.innerHTML='<div><strong>Race-control plan</strong>Check items as they happen. The next decision stays obvious.</div><button type="button" class="plan-reset">RESET CHECKBOXES</button>';el.appendChild(helper);
-    helper.querySelector('.plan-reset').onclick=async()=>{for(const x of items){if(x.fields?.Done===true){try{await api('setPlanDone',{id:x.id,done:false})}catch(e){console.error(e)}}}await load()};
-    if(!visible.length){const empty=document.createElement('div');empty.className='plan-empty';empty.textContent='Nothing in this view yet.';el.appendChild(empty);return}
-    let last='';let day;
-    visible.forEach(x=>{const f=x.fields||{},date=f.Date||'No date';if(date!==last){day=document.createElement('section');day.className='plan-day';const dt=f.Date?new Date(f.Date+'T00:00:00'):null;const label=dt?dt.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'}):'No date';const count=visible.filter(y=>(y.fields||{}).Date===date).length;day.innerHTML=`<div class="plan-day-head"><strong>${esc(label)}</strong><span>${count} ${count===1?'ITEM':'ITEMS'}</span></div>`;el.appendChild(day);last=date}
-      const done=f.Done===true||f.Status==='Done',s=styleFor(f),name=f.Name||f.Item||'Plan item',loop=f['Loop #']?`LOOP ${f['Loop #']}`:'';
-      const row=document.createElement('div');row.className='plan-item'+(done?' done':'');row.style.setProperty('--plan-accent',s.accent);
-      const note=f.Notes||({'Food':'Refuel and keep the engine running.','Supplement':'Stay consistent and follow the plan.','Medication':'Stay on schedule.','Race':'One more loop.','Setup':'Get camp ready and organized.','Coffee':'Reset, hydrate, regroup.'}[category(f)]||'Keep the next decision obvious.');
-      row.innerHTML=`<div><div class="plan-time">${esc(f.Time||'—')}</div><div class="plan-loop">${esc(loop)}</div></div><div class="plan-icon" style="color:${s.accent}">${s.icon}</div><div class="plan-copy"><div class="plan-name">${esc(name)}</div><div class="plan-note">${esc(note)}</div></div><label><input class="plan-check" type="checkbox" ${done?'checked':''} aria-label="Mark ${esc(name)} done"></label><div class="plan-badge" style="color:${s.accent}">${esc(category(f)==='Medication'?'SUPPLEMENT':category(f).toUpperCase())}</div>`;
-      row.querySelector('.plan-check').onchange=async e=>{try{await api('setPlanDone',{id:x.id,done:e.target.checked});await load()}catch(err){e.target.checked=!e.target.checked;showError(err)}};
-      day.appendChild(row);
-    });
-  }
-  window.renderPlan=renderPremium;
-  enhanceHero();
-  setTimeout(renderPremium,0);
+  function enhanceHero(){const hero=document.querySelector('#planTab .page-hero');if(!hero)return;const k=hero.querySelector('.section-kicker'),t=hero.querySelector('h2'),p=hero.querySelector('p');if(k)k.textContent='RACE PLAN';if(t)t.textContent='Fuel the Mission';if(p)p.textContent='Right things. Right time. One more loop.';if(!hero.querySelector('.plan-intro')){const stats=document.createElement('div');stats.className='plan-intro';stats.innerHTML='<span class="plan-stat">START <strong>9:00 AM CT</strong></span><span class="plan-stat">LOOP <strong>4.167 MI</strong></span><span class="plan-stat">LAST RUNNER STANDING</span>';hero.insertBefore(stats,hero.querySelector('#addPlanBtn'));}}
+  function buildFilters(items){document.querySelector('#planTab .plan-filter-bar')?.remove();const cats=['All','Nutrition','Supplements','Food','Admin','Overnight'];const counts={All:items.length,Nutrition:items.filter(x=>/fuel|hydr|coffee/i.test(String(x.fields?.Category||'')+' '+String(x.fields?.Name||x.fields?.Item||''))).length,Supplements:items.filter(x=>/supplement|medication/i.test(String(x.fields?.Category||''))).length,Food:items.filter(x=>String(x.fields?.Category||'')==='Food').length,Admin:items.filter(x=>/setup|race|admin|coffee/i.test(String(x.fields?.Category||''))).length,Overnight:items.filter(x=>String(x.fields?.Date||'')==='2026-09-06').length};const bar=document.createElement('div');bar.className='plan-filter-bar';cats.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='plan-filter'+(filter===c?' active':'');b.textContent=`${c} (${counts[c]||0})`;b.onclick=()=>{filter=c;renderPremium()};bar.appendChild(b)});document.querySelector('#planTab .page-hero')?.after(bar);}
+  function matches(f){if(filter==='All')return true;const c=String(f.Category||''),n=String(f.Name||f.Item||'');if(filter==='Supplements')return /supplement|medication/i.test(c);if(filter==='Food')return c==='Food';if(filter==='Nutrition')return /nutrition|hydration|fuel|coffee/i.test(c+' '+n);if(filter==='Admin')return /setup|race|admin/i.test(c);if(filter==='Overnight')return String(f.Date||'')==='2026-09-06';return true;}
+  function renderPremium(){enhanceHero();const items=[...(state.plan||[])].sort(planSort);buildFilters(items);const el=document.getElementById('planList');if(!el)return;el.innerHTML='';const visible=items.filter(x=>matches(x.fields||{}));const helper=document.createElement('div');helper.className='plan-helper';helper.innerHTML='<div><strong>Race-control plan</strong>Check items as they happen. The next decision stays obvious.</div><button type="button" class="plan-reset">RESET CHECKBOXES</button>';el.appendChild(helper);helper.querySelector('.plan-reset').onclick=async()=>{for(const x of items){if(x.fields?.Done===true){try{await api('setPlanDone',{id:x.id,done:false})}catch(e){console.error(e)}}}await load()};if(!visible.length){const empty=document.createElement('div');empty.className='plan-empty';empty.textContent='Nothing in this view yet.';el.appendChild(empty);return}let last='',day;visible.forEach(x=>{const f=x.fields||{},date=f.Date||'No date';if(date!==last){day=document.createElement('section');day.className='plan-day';const dt=f.Date?new Date(f.Date+'T00:00:00'):null;const label=dt?dt.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'}):'No date';const count=visible.filter(y=>(y.fields||{}).Date===date).length;day.innerHTML=`<div class="plan-day-head"><strong>${esc(label)}</strong><span>${count} ${count===1?'ITEM':'ITEMS'}</span></div>`;el.appendChild(day);last=date}const done=f.Done===true||f.Status==='Done',s=styleFor(f),name=f.Name||f.Item||'Plan item',loop=f['Loop #']?`LOOP ${f['Loop #']}`:'';const row=document.createElement('div');row.className='plan-item'+(done?' done':'');row.style.setProperty('--plan-accent',s.accent);const note=f.Notes||({'Food':'Refuel and keep the engine running.','Supplement':'Stay consistent and follow the plan.','Medication':'Stay on schedule.','Race':'One more loop.','Setup':'Get camp ready and organized.','Coffee':'Reset, hydrate, regroup.'}[category(f)]||'Keep the next decision obvious.');row.innerHTML=`<div><div class="plan-time">${esc(f.Time||'—')}</div><div class="plan-loop">${esc(loop)}</div></div><div class="plan-icon" style="color:${s.accent}">${s.icon}</div><div class="plan-copy"><div class="plan-name">${esc(name)}</div><div class="plan-note">${esc(note)}</div></div><label><input class="plan-check" type="checkbox" ${done?'checked':''} aria-label="Mark ${esc(name)} done"></label><div class="plan-badge" style="color:${s.accent}">${esc(category(f).toUpperCase())}</div>`;row.querySelector('.plan-check').onchange=async e=>{try{await api('setPlanDone',{id:x.id,done:e.target.checked});await load()}catch(err){e.target.checked=!e.target.checked;showError(err)}};day.appendChild(row)});}
+  window.renderPlan=renderPremium;enhanceHero();setTimeout(renderPremium,0);
 })();
