@@ -1,41 +1,20 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#111827"><title>Backyard Ultra Crew</title>
-<link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<header class="topbar"><div><div class="eyebrow">BACKYARD ULTRA</div><h1 id="raceTitle">Backyard Ultra</h1></div>
-<button id="modeBtn" class="ghost">Runner Mode</button></header>
-<main class="wrap">
-<div id="error" class="error hidden"></div>
-<section class="hero">
-<div class="heroStat"><span>Current loop</span><strong id="currentLoop">—</strong></div>
-<div class="countdown"><span>Countdown</span><strong id="countdown">--:--:--</strong></div>
-<div class="heroStat"><span>Miles</span><strong id="miles">0.0</strong></div>
-</section>
-<section class="card runnerCard"><div class="sectionHead"><h2>Next up</h2><button id="refreshBtn" class="small">Refresh</button></div><div id="nextPlan" class="nextPlan">Loading…</div></section>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#090b10"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Backyard Ultra</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"></head>
+<body><div class="app-shell">
+<header class="topbar"><div><div class="race-kicker">BACKYARD ULTRA</div><h1 id="raceTitle">Backyard Ultra</h1></div><button id="modeBtn" class="mode-toggle">RUNNER MODE</button></header>
+<main class="content"><div id="error" class="error hidden"></div>
+<section class="race-card"><div class="status-line"><span id="raceStatus" class="pill">NOT STARTED</span><span id="syncStatus">Connecting…</span></div><div class="loop-label">LOOP</div><div id="currentLoop" class="loop-number">—</div><div class="timer-label">TIME UNTIL NEXT LOOP</div><div id="countdown" class="countdown">--:--:--</div>
+<div class="stats"><div><span>MILES</span><strong id="miles">0.0</strong></div><div><span>LAST LOOP</span><strong id="lastLoop">—</strong></div><div><span>ELAPSED</span><strong id="elapsed">—</strong></div></div></section>
+<section class="next-card"><div class="section-kicker">NEXT UP</div><div id="nextPlan" class="next-title">Loading…</div><div id="nextMeta" class="next-meta"></div></section>
 <section id="crewPanel">
-<section class="card"><div class="sectionHead"><h2>Crew controls</h2><span id="syncStatus" class="status">Connecting…</span></div>
-<div class="buttonGrid"><button id="startBtn" class="primary">Start race</button><button id="completeBtn">Complete current loop</button><button id="dnfBtn" class="danger">Mark DNF</button><button id="finishBtn">Finish race</button></div></section>
-<section class="card"><div class="sectionHead"><h2>Race plan</h2><button id="addPlanBtn" class="small">+ Add</button></div><div id="planList"></div></section>
-<section class="card"><div class="sectionHead"><h2>Reminders</h2><button id="addReminderBtn" class="small">+ Add</button></div><div id="reminderList"></div></section>
-<section class="card"><div class="sectionHead"><h2>Loop history</h2></div><div id="loopList"></div></section>
-</section>
-<section class="card"><div class="sectionHead"><h2>Quick note</h2></div><div class="noteRow"><input id="noteInput" placeholder="Crew note…"><button id="saveNoteBtn">Save</button></div><div id="noteList"></div></section>
-<footer><span>Shared through Airtable</span><span id="lastUpdated">—</span></footer>
-</main>
-
-<dialog id="planDialog"><form method="dialog" id="planForm"><h2>Add race-plan item</h2>
-<label>Name<input name="name" required></label><label>Time<input name="time" placeholder="e.g. 11:00 AM" required></label>
-<label>Loop #<input name="loop" type="number"></label><label>Item<input name="item"></label>
-<label>Category<input name="category" placeholder="Food, Supplement, Medication…"></label><label>Notes<textarea name="notes"></textarea></label>
-<div class="dialogButtons"><button value="cancel">Cancel</button><button class="primary" value="default">Add</button></div></form></dialog>
-
-<dialog id="reminderDialog"><form method="dialog" id="reminderForm"><h2>Add reminder</h2>
-<label>Reminder<input name="reminder" required></label><label>Type<select name="type"><option>Every N loops</option><option>Every N hours</option><option>One-time</option></select></label>
-<label>Interval<input name="interval" type="number"></label><label>Next Due<input name="nextDue" placeholder="e.g. 9 or 11:00 AM"></label>
-<label>Notes<textarea name="notes"></textarea></label><div class="dialogButtons"><button value="cancel">Cancel</button><button class="primary" value="default">Add</button></div></form></dialog>
-<script src="config.js"></script><script src="app.js"></script>
-</body></html>
+<section class="card"><div class="section-title"><h2>Race control</h2><span id="lastUpdated">—</span></div><div class="control-grid"><button id="startBtn" class="action primary">START RACE</button><button id="completeBtn" class="action">✓ LOOP COMPLETE</button><button id="finishBtn" class="action">FINISH</button><button id="dnfBtn" class="action danger">DNF</button></div></section>
+<section class="card"><div class="section-title"><h2>Race plan</h2><button id="addPlanBtn" class="add">+ ADD</button></div><div id="planList"></div></section>
+<section class="card"><div class="section-title"><h2>Reminders</h2><button id="addReminderBtn" class="add">+ ADD</button></div><div id="reminderList"></div></section>
+<section class="card"><div class="section-title"><h2>Loop history</h2></div><div id="loopList"></div></section></section>
+<section class="card quick-note"><div class="section-title"><h2>Quick note</h2></div><div class="note-row"><input id="noteInput" placeholder="Something to remember…"><button id="saveNoteBtn">SAVE</button></div><div id="noteList"></div></section>
+</main></div>
+<dialog id="planDialog"><form method="dialog" id="planForm"><div class="dialog-head"><h2>Add to race plan</h2><button value="cancel" class="x">×</button></div><label>Name<input name="name" required></label><label>Time<input name="time" placeholder="e.g. 11:00 AM" required></label><label>Loop #<input name="loop" type="number"></label><label>Item<input name="item"></label><label>Category<input name="category" placeholder="Food, Supplement, Rest…"></label><label>Notes<textarea name="notes"></textarea></label><button class="full primary" value="default">ADD TO PLAN</button></form></dialog>
+<dialog id="reminderDialog"><form method="dialog" id="reminderForm"><div class="dialog-head"><h2>Add reminder</h2><button value="cancel" class="x">×</button></div><label>Reminder<input name="reminder" required></label><label>Type<select name="type"><option>Every N loops</option><option>Every N hours</option><option>One-time</option></select></label><label>Interval<input name="interval" type="number"></label><label>Next Due<input name="nextDue" placeholder="e.g. 9 or 11:00 AM"></label><label>Notes<textarea name="notes"></textarea></label><button class="full primary" value="default">ADD REMINDER</button></form></dialog>
+<script src="config.js"></script><script src="app.js"></script></body></html>
