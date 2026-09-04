@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   if (!BASE || !PAT) return res.status(500).json({error:"Vercel environment variables AIRTABLE_BASE_ID and AIRTABLE_PAT are missing."});
 
   const patInfo = {received:true,startsWithPat:PAT.startsWith("pat"),hasDot:PAT.includes("."),hasWhitespace:PAT!==PAT.trim(),length:PAT.length};
-  const tables = {race:"Race",loops:"Loops",reminders:"Reminders",plan:"Race Plan"};
+  const tables = {race:"Race",loops:"Loops",reminders:"Reminders",plan:"Race Plan",runnerLog:"Runner Log"};
   function airtableError(status,message){if(status===401)return new Error(`Airtable rejected AIRTABLE_PAT (401). Safe token check: startsWithPat=${patInfo.startsWithPat}, hasDot=${patInfo.hasDot}, hasWhitespace=${patInfo.hasWhitespace}, length=${patInfo.length}. The token itself is not exposed.`);return new Error(message||`Airtable error ${status}`)}
   async function at(table,method="GET",body){const url=`https://api.airtable.com/v0/${BASE}/${encodeURIComponent(table)}`;const r=await fetch(url,{method,headers:{"Authorization":`Bearer ${PAT}`,"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw airtableError(r.status,d.error?.message);return d}
   async function all(table){let out=[],offset="";do{const url=`https://api.airtable.com/v0/${BASE}/${encodeURIComponent(table)}${offset?`?offset=${encodeURIComponent(offset)}`:""}`;const r=await fetch(url,{headers:{"Authorization":`Bearer ${PAT}`}});const d=await r.json().catch(()=>({}));if(!r.ok)throw airtableError(r.status,d.error?.message);out.push(...(d.records||[]));offset=d.offset||""}while(offset);return out}
@@ -19,7 +19,10 @@ export default async function handler(req, res) {
   async function create(table,fields){return at(table,"POST",{records:[{fields}]})}
   try{
     const b=req.body||{},action=b.action;
-    if(action==="getAll"){const [race,loops,reminders,plan]=await Promise.all([all(tables.race),all(tables.loops),all(tables.reminders),all(tables.plan)]);return res.status(200).json({race:race[0]||null,loops,reminders,plan})}
+    if(action==="getAll"){
+      const [race,loops,reminders,plan,runnerLog]=await Promise.all([all(tables.race),all(tables.loops),all(tables.reminders),all(tables.plan),all(tables.runnerLog)]);
+      return res.status(200).json({race:race[0]||null,loops,reminders,plan,runnerLog});
+    }
     const races=await all(tables.race),race=races[0];if(!race)throw new Error("Race table has no record.");
     if(action==="startRace"){await update(tables.race,race.id,{Status:"Running",["Current Loop"]:1});return res.status(200).json({ok:true})}
     if(action==="resetRace"){await update(tables.race,race.id,{Status:"Not Started",["Current Loop"]:1});return res.status(200).json({ok:true})}
@@ -28,12 +31,8 @@ export default async function handler(req, res) {
     if(action==="saveRunnerLog"){
       const loopNumber=Number(b.loop);
       if(!loopNumber||!b.fields)throw new Error("Runner log is missing its loop number or check-in.");
-      const loops=await all(tables.loops),record=loops.find(x=>Number(x.fields?.["Loop #"])===loopNumber);
-      if(!record)throw new Error(`Loop ${loopNumber} has not been completed yet.`);
-      const f=b.fields||{},stamp=new Date().toISOString();
-      const entry=`RUNNER LOG | ${stamp} | Feeling: ${f.feeling||"—"} | Legs: ${f.legs||"—"} | Feet: ${f.feet||"—"} | Hydration: ${f.hydration||"—"} | Fuel: ${f.fuel||"—"} | Mental: ${f.mental||"—"} | Note: ${String(f.note||"").replace(/[|\n\r]/g," ").trim()||"—"}`;
-      const old=String(record.fields?.Notes||"").trim();
-      await update(tables.loops,record.id,{Notes:old?`${old}\n${entry}`:entry});
+      const f=b.fields||{};
+      await create(tables.runnerLog,{"Loop #":loopNumber,"Time":new Date().toISOString(),"Feeling":f.feeling||"","Legs":f.legs||"","Feet":f.feet||"","Hydration":f.hydration||"","Fuel":f.fuel||"","Mental":f.mental||"","Note":String(f.note||"").trim()});
       return res.status(200).json({ok:true});
     }
     if(action==="setReminderDone"){await update(tables.reminders,b.id,{Done:!!b.done});return res.status(200).json({ok:true})}
