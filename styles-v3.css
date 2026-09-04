@@ -19,11 +19,34 @@
 @keyframes linePulse{50%{box-shadow:0 0 0 2px rgba(255,96,107,.12)}}
 .next-card{cursor:pointer;transition:transform .15s ease,border-color .15s ease}
 .next-card:active{transform:scale(.985);border-color:#6570ff}
-.milestone-card.motivation-card{padding:15px 16px;background:linear-gradient(135deg,#111b34,#0b1426);border-color:#263b62}
+
+/* HOME: visual motivation card */
+.milestone-card.motivation-card{
+  position:relative;overflow:hidden;min-height:116px;
+  padding:15px 16px 14px;
+  border:1px solid #354878;border-radius:11px;
+  background:radial-gradient(circle at 91% 22%,rgba(104,116,255,.28),transparent 28%),radial-gradient(circle at 74% 120%,rgba(66,220,116,.09),transparent 38%),linear-gradient(135deg,#0c1730 0%,#10183a 54%,#0c1428 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 10px 25px rgba(0,0,0,.18);
+}
+.milestone-card.motivation-card:before{content:'';position:absolute;width:94px;height:94px;right:-24px;top:-22px;border:1px solid rgba(126,138,255,.23);border-radius:50%;box-shadow:0 0 0 12px rgba(104,116,255,.035),0 0 0 25px rgba(104,116,255,.025)}
+.milestone-card.motivation-card:after{content:'→';position:absolute;right:17px;bottom:11px;font-family:'Barlow Condensed',sans-serif;font-size:29px;font-weight:900;color:#707bff}
 .motivation-card .section-title{display:none}
-.motivation-kicker{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.12em;color:#7287a3;margin-bottom:5px}
-.motivation-quote{font-family:'Barlow Condensed',sans-serif;font-size:27px;line-height:1;color:#fff;font-weight:900;letter-spacing:.02em}
-.motivation-sub{font-size:11px;line-height:1.35;color:#9aabc0;margin-top:6px;max-width:310px}
-.race-brain-card{padding:13px 16px;background:#09182a;border-color:#1d3551}
-.brain-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:.02em;color:#fff;margin-top:3px}
-.brain-meta{font-size:10px;line-height:1.35;color:#8fa2b9;margin-top:4px}
+.motivation-card .motivation-kicker{position:relative;z-index:2;font-family:'DM Mono',monospace;font-size:7px;letter-spacing:1.5px;color:#8493ae;margin-bottom:5px}
+.motivation-card .motivation-quote{position:relative;z-index:2;font-family:'Barlow Condensed',sans-serif;font-size:31px;line-height:.9;color:#fff;font-weight:900;letter-spacing:.01em;text-shadow:0 2px 12px rgba(0,0,0,.25)}
+.motivation-card .motivation-sub{position:relative;z-index:2;font-size:9px;line-height:1.45;color:#aebbd0;margin-top:8px;max-width:315px}
+
+/* HOME: Race Brain becomes a compact intelligence panel */
+.phase-card.race-brain-card{
+  position:relative;overflow:hidden;min-height:82px;
+  padding:13px 14px 12px 12px;margin-top:8px;
+  background:linear-gradient(135deg,#081b1a 0%,#081729 62%,#091526 100%);
+  border:1px solid #28553f;border-radius:11px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 9px 23px rgba(0,0,0,.16);
+}
+.phase-card.race-brain-card:before{content:'RACE BRAIN';position:absolute;top:10px;right:12px;font-family:'DM Mono',monospace;font-size:6px;letter-spacing:1.2px;color:#668176}
+.phase-card.race-brain-card:after{content:'';position:absolute;right:-18px;bottom:-31px;width:84px;height:84px;border-radius:50%;border:1px solid rgba(127,229,107,.13);box-shadow:0 0 0 10px rgba(127,229,107,.025),0 0 0 22px rgba(127,229,107,.015)}
+.phase-card.race-brain-card .phase-icon{width:40px;height:40px;flex:none;border-radius:10px;background:linear-gradient(145deg,#102d27,#0a211d);border:1px solid #2d674e;color:#7fe56b;display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);font-size:0}
+.phase-card.race-brain-card .phase-icon:before{content:'✦';font-size:18px}
+.phase-card.race-brain-card b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:20px;line-height:1;letter-spacing:.45px;color:#7fe56b}
+.phase-card.race-brain-card small{display:block;margin-top:5px;color:#aebbc5;font-size:9px;line-height:1.35;max-width:275px}
+.phase-card.race-brain-card.urgent{border-color:#6a5b22;background:linear-gradient(135deg,#1b1709,#101728)}
