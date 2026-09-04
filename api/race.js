@@ -24,7 +24,18 @@ export default async function handler(req, res) {
     if(action==="startRace"){await update(tables.race,race.id,{Status:"Running",["Current Loop"]:1});return res.status(200).json({ok:true})}
     if(action==="resetRace"){await update(tables.race,race.id,{Status:"Not Started",["Current Loop"]:1});return res.status(200).json({ok:true})}
     if(action==="setStatus"){await update(tables.race,race.id,{Status:b.status});return res.status(200).json({ok:true})}
-    if(action==="completeLoop"){const cur=Number(race.fields["Current Loop"]||1),dist=Number(race.fields["Loop Distance"]||4.1),start=new Date(race.fields["Start Time"]),ret=new Date(),loopStart=new Date(start.getTime()+(cur-1)*3600000),mins=Math.max(0,Math.round((ret-loopStart)/60000));await create(tables.loops,{"Loop #":cur,"Start Time":loopStart.toISOString(),"Return Time":ret.toISOString(),"Loop Time":`${mins} min`,"Total Miles":Number((cur*dist).toFixed(1)),Notes:"Recorded from Crew Mode"});await update(tables.race,race.id,{"Current Loop":cur+1,Status:"Running"});return res.status(200).json({ok:true})}
+    if(action==="completeLoop"){const cur=Number(race.fields["Current Loop"]||1),dist=Number(race.fields["Loop Distance"]||4.167),start=new Date(race.fields["Start Time"]),ret=new Date(),loopStart=new Date(start.getTime()+(cur-1)*3600000),mins=Math.max(0,Math.round((ret-loopStart)/60000));await create(tables.loops,{"Loop #":cur,"Start Time":loopStart.toISOString(),"Return Time":ret.toISOString(),"Loop Time":`${mins} min`,"Total Miles":Number((cur*dist).toFixed(1)),Notes:"Recorded from Crew Mode"});await update(tables.race,race.id,{"Current Loop":cur+1,Status:"Running"});return res.status(200).json({ok:true})}
+    if(action==="saveRunnerLog"){
+      const loopNumber=Number(b.loop);
+      if(!loopNumber||!b.fields)throw new Error("Runner log is missing its loop number or check-in.");
+      const loops=await all(tables.loops),record=loops.find(x=>Number(x.fields?.["Loop #"])===loopNumber);
+      if(!record)throw new Error(`Loop ${loopNumber} has not been completed yet.`);
+      const f=b.fields||{},stamp=new Date().toISOString();
+      const entry=`RUNNER LOG | ${stamp} | Feeling: ${f.feeling||"—"} | Legs: ${f.legs||"—"} | Feet: ${f.feet||"—"} | Hydration: ${f.hydration||"—"} | Fuel: ${f.fuel||"—"} | Mental: ${f.mental||"—"} | Note: ${String(f.note||"").replace(/[|\n\r]/g," ").trim()||"—"}`;
+      const old=String(record.fields?.Notes||"").trim();
+      await update(tables.loops,record.id,{Notes:old?`${old}\n${entry}`:entry});
+      return res.status(200).json({ok:true});
+    }
     if(action==="setReminderDone"){await update(tables.reminders,b.id,{Done:!!b.done});return res.status(200).json({ok:true})}
     if(action==="setPlanDone"){await update(tables.plan,b.id,{Done:!!b.done,Status:b.done?"Done":"Not started"});return res.status(200).json({ok:true})}
     if(action==="createReminder"){await create(tables.reminders,b.fields||{});return res.status(200).json({ok:true})}
