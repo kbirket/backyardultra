@@ -1,8 +1,9 @@
 // Vercel version: no secrets belong in this file.
 window.APP_CONFIG = { API_URL: "/api/race" };
 
-/* The original renderer repainted every card every second, which made the live UI flicker.
-   Block only that legacy interval; app-v14 owns the lightweight live clock. */
+/* Keep the legacy 1-second full-page repaint disabled permanently.
+   The original app-v3 timer calls render(), which rebuilds the whole screen every second.
+   app-v14 owns the lightweight live clock and does not match this guard. */
 (function(){
   const native=window.setInterval;
   window.setInterval=function(fn,ms,...args){
@@ -12,5 +13,4 @@ window.APP_CONFIG = { API_URL: "/api/race" };
     }catch(e){}
     return native(fn,ms,...args);
   };
-  setTimeout(()=>{window.setInterval=native},0);
 })();
