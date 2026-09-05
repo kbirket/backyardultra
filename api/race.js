@@ -21,14 +21,25 @@ export default async function handler(req, res) {
       const entries=await Promise.all(Object.entries(tables).map(async([key,table])=>{try{return [key,await all(table),null]}catch(e){console.error(`Airtable ${key} read failed:`,e);return [key,[],e.message||String(e)]}}));
       const data=Object.fromEntries(entries.map(([key,value])=>[key,value]));
       const dataErrors=Object.fromEntries(entries.filter(([,value,error])=>error).map(([key,,error])=>[key,error]));
-      return res.status(200).json({race:data.race?.[0]||null,loops:data.loops||[],reminders:data.reminders||[],plan:data.plan||[],runnerLog:data.runnerLog||[],gear:data.gear||[],dataErrors});
+      const race=data.race?.[0]||null;
+      // The race starts on the scheduled hour even if nobody taps Start Race.
+      // This keeps the clock and Airtable state aligned after an accidental missed start.
+      if(race && race.fields?.Status==="Not Started" && race.fields?.["Start Time"]){
+        const start=new Date(race.fields["Start Time"]);
+        if(!Number.isNaN(start.getTime()) && Date.now()>=start.getTime()){
+          await update(tables.race,race.id,{Status:"Running",["Current Loop"]:1});
+          race.fields.Status="Running";
+          race.fields["Current Loop"]=1;
+        }
+      }
+      return res.status(200).json({race,loops:data.loops||[],reminders:data.reminders||[],plan:data.plan||[],runnerLog:data.runnerLog||[],gear:data.gear||[],dataErrors});
     }
     const races=await all(tables.race),race=races[0];if(!race)throw new Error("Race table has no record.");
     if(action==="startRace"){await update(tables.race,race.id,{Status:"Running",["Current Loop"]:1});return res.status(200).json({ok:true})}
     if(action==="resetRace"){await update(tables.race,race.id,{Status:"Not Started",["Current Loop"]:1});return res.status(200).json({ok:true})}
     if(action==="setStatus"){await update(tables.race,race.id,{Status:b.status});return res.status(200).json({ok:true})}
     if(action==="completeLoop"){const cur=Number(race.fields["Current Loop"]||1),dist=Number(race.fields["Loop Distance"]||4.167),start=new Date(race.fields["Start Time"]),ret=new Date(),loopStart=new Date(start.getTime()+(cur-1)*3600000),mins=Math.max(0,Math.round((ret-loopStart)/60000));await create(tables.loops,{"Loop #":cur,"Start Time":loopStart.toISOString(),"Return Time":ret.toISOString(),"Loop Time":`${mins} min`,"Total Miles":Number((cur*dist).toFixed(1)),Notes:"Recorded from Crew Mode"});await update(tables.race,race.id,{"Current Loop":cur+1,Status:"Running"});return res.status(200).json({ok:true})}
-    if(action==="saveRunnerLog"){const loopNumber=Number(b.loop),f=b.fields||{};if(!loopNumber||!b.fields)throw new Error("Runner log is missing its loop number or check-in.");const loops=await all(tables.loops);if(!loops.some(r=>Number(r.fields?.["Loop #"])===loopNumber))throw new Error(`Loop ${loopNumber} has not been completed yet.`);await create(tables.runnerLog,{"Name":`Loop ${loopNumber} — Tom Check-In`,"Loop #":loopNumber,"Time":new Date().toISOString(),"Feeling":f.feeling||"","Legs":f.legs||"","Feet":f.feet||"","Hydration":f.hydration||"","Fuel":f.fuel||"","Mental":f.mental||"","Note":String(f.note||"").trim()});return res.status(200).json({ok:true})}
+    if(action==="saveRunnerLog"){const loopNumber=Number(b.loop),f=b.fields||{};if(!loopNumber||!b.fields)throw new Error("Runner log is missing its loop number or check-in.");const loops=await all(tables.loops);if(!loops.some(r=>Number(r.fields?.["Loop #"])===loopNumber))throw new Error(`Loop ${loopNumber} has not been completed yet.`);await create(tables.runnerLog,{"Name":`Loop ${loopNumber} — Tom Check-In`,`Loop #":loopNumber,"Time":new Date().toISOString(),"Feeling":f.feeling||"","Legs":f.legs||"","Feet":f.feet||"","Hydration":f.hydration||"","Fuel":f.fuel||"","Mental":f.mental||"","Note":String(f.note||"").trim()});return res.status(200).json({ok:true})}
     if(action==="saveGear"){const f=b.fields||{},item=String(f.item||"").trim();if(!item)throw new Error("Gear item is required.");await create(tables.gear,{"Item":item,"Category":f.category||"Other","Person":f.person||"Both","How Many":Number(f.quantity||1),"Status":f.status||"Ready","Location":f.location||"","Notes":String(f.notes||"").trim(),"Done":!!f.done});return res.status(200).json({ok:true})}
     if(action==="setGearDone"){await update(tables.gear,b.id,{Done:!!b.done,Status:b.done?"In Use":"Ready"});return res.status(200).json({ok:true})}
     if(action==="setReminderDone"){await update(tables.reminders,b.id,{Done:!!b.done});return res.status(200).json({ok:true})}
